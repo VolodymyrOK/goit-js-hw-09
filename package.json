@@ -24,9 +24,11 @@
   },
   "devDependencies": {
     "@parcel/transformer-sass": "^2.6.0",
+    "lodash.throttle": "^4.1.1",
     "parcel": "^2.6.0",
     "parcel-reporter-clean-dist": "^1.0.4",
-    "posthtml-include": "^1.7.4"
+    "posthtml-include": "^1.7.4",
+    "throttle": "^1.0.3"
   },
   "browserslist": "> 0.5%, last 2 versions, not dead"
 }
