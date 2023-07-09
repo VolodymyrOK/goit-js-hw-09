@@ -4,14 +4,14 @@ import Notiflix from 'notiflix';
 
 const refs = {
   input: document.querySelector('#datetime-picker'),
-  buttonStart: document.querySelector('button[data-start]'),
-  buttonStop: document.querySelector('button[data-stop]'),
+  button: document.querySelector('button[data-start]'),
   field: document.querySelector('.field'),
+  restart: document.querySelector('.restart'),
 };
-const { input, buttonStart, buttonStop, field } = refs;
+const { input, button, field, restart } = refs;
 let endTime = null;
 
-// Опции для flatpickr с вызовом обработчика таймера
+// Options for flatpickr with call to timer handler function
 const options = {
   enableTime: true,
   time_24hr: true,
@@ -23,27 +23,37 @@ const options = {
     const currentTime = Date.now();
     let deltaTime = endTime - currentTime;
     let checkSeconds = Math.floor(deltaTime / 1000);
-    if (checkSeconds < 0) {
-      buttonStart.setAttribute('disabled', 'disabled');
-      buttonStop.setAttribute('disabled', 'disabled');
-      Notiflix.Report.failure(
-        'Please choose a date in the future',
-        'Press the button to continue',
-        'Button'
-      );
-    } else {
-      buttonStart.hasAttribute('disabled')
-        ? buttonStart.toggleAttribute('disabled')
-        : buttonStart.removeAttribute('disabled');
-      timerHandler(endTime);
-    }
+
+    let promiseTimer = new Promise((resolve, reject) => {
+      if (checkSeconds < 0) {
+        reject(console.log('❌ Failed. Please choose a date in the future'));
+      } else {
+        resolve(console.log('✅ Success. Timer is running'));
+      }
+    });
+    promiseTimer
+      .then(() => {
+        button.hasAttribute('disabled')
+          ? button.toggleAttribute('disabled')
+          : button.removeAttribute('disabled');
+        timerHandler(endTime);
+      })
+      .catch(() => {
+        button.setAttribute('disabled', 'disabled');
+        Notiflix.Report.failure(
+          'Please choose a date in the future',
+          'Press the button to continue',
+          'Button'
+        );
+      });
   },
 };
 
-// Инициализация интерфейса выбора даты
-const fp = flatpickr(input, options);
+// Date picker interface initialization
+// const fp = flatpickr(input, options);
+flatpickr(input, options);
 
-// Вызов функции-обработчика таймера
+// Timer handler function
 function timerHandler(endTime) {
   class Timer {
     constructor({ onTick }) {
@@ -62,8 +72,16 @@ function timerHandler(endTime) {
     start() {
       if (this.isActive) return this.init();
 
-      buttonStart.setAttribute('disabled', 'disabled');
-      buttonStop.removeAttribute('disabled');
+      button.setAttribute('disabled', 'disabled');
+      input.setAttribute('disabled', 'disabled');
+      restart.textContent = 'To restart the timer, you need to reload the page';
+
+      restart.style.backgroundColor = 'teal';
+      restart.style.fontSize = '24px';
+      restart.style.textAlign = 'center';
+      restart.style.maxWidth = '310px';
+      restart.style.color = 'white';
+
       this.isActive = true;
 
       this.intervalId = setInterval(() => {
@@ -73,12 +91,10 @@ function timerHandler(endTime) {
         if (checkSeconds < 0 && !this.isActive) {
           this.isActive = false;
           Notiflix.Report.failure(
-            'Please choose a date in the future',
-            'Press the button to continue',
-            'Button'
+            'Please reload the page',
+            'To start the timer',
+            ''
           );
-          this.stop();
-          return;
         } else if (checkSeconds > 0 && this.isActive) {
           this.isActive = true;
           const time = this.convertMs(deltaTime);
@@ -91,17 +107,11 @@ function timerHandler(endTime) {
             'Press the button to continue',
             'Button'
           );
-          this.stop();
           return;
         }
       }, 1000);
     }
-    stop() {
-      buttonStart.setAttribute('disabled', 'disabled');
-      buttonStop.setAttribute('disabled', 'disabled');
-      clearInterval(this.intervalId);
-      this.init();
-    }
+
     convertMs(timeMs) {
       const second = 1000;
       const minute = second * 60;
@@ -136,6 +146,5 @@ function timerHandler(endTime) {
     onTick: updateClock,
   });
 
-  buttonStart.addEventListener('click', timer.start.bind(timer));
-  buttonStop.addEventListener('click', timer.stop.bind(timer));
+  button.addEventListener('click', timer.start.bind(timer));
 }
