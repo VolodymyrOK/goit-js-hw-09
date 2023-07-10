@@ -41,9 +41,7 @@ const options = {
 
 // Date picker interface initialization
 // const fp = flatpickr(input, options);
-const dat = '#datetime-picker';
-console.log(dat);
-console.log(flatpickr(dat, options));
+flatpickr(input, options);
 
 // Timer handler function
 function timerHandler(endTime) {
